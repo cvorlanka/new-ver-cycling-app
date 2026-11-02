@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            // DC utility endpoints are served at the root (no /api prefix).
+            // DC utility and Magento endpoints are served at the root (no /api prefix).
             Route::middleware('api')->group(base_path('routes/dcutils.php'));
+            Route::middleware('api')->group(base_path('routes/magento.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -23,6 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // API clients always get JSON errors, even without an Accept header.
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*', 'case_label', 'confirm_label') || $request->expectsJson()
+            fn (Request $request) => $request->is('api/*', 'case_label', 'confirm_label', 'dc/*', 'magento/*') || $request->expectsJson()
         );
     })->create();
