@@ -7,4 +7,5 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('throttle:60,1')->prefix('magento')->group(function () {
     Route::get('lab/{lab}', [CVOWebsiteSupportController::class, 'validateLab']);
     Route::post('add_lab', [CVOWebsiteSupportController::class, 'addCustomerLab']);
+    Route::get('account/{account}', [CVOWebsiteSupportController::class, 'accountData']);
 });
