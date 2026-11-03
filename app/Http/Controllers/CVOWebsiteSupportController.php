@@ -52,6 +52,41 @@ class CVOWebsiteSupportController extends Controller
     }
 
     /**
+     * GET /magento/validate/{acc}/{inv}
+     *
+     * Confirms the invoice (or credit memo) belongs to the account, then returns the account's
+     * status and sales rep. Responds with the plain string "Invalid" otherwise.
+     */
+    public function validateAccount(string $acc, string $inv)
+    {
+        $acc = $this->padAccount($acc);
+
+        // Short numbers are tried as an invoice first, then as a credit memo.
+        $useInvoice = (strlen($inv) < 10 && (! preg_match('/INV/i', $inv) || ! preg_match('/CRM/i', $inv))) ? 'INV'.$inv : $inv;
+
+        if (! $this->invoiceBelongsTo($acc, $useInvoice) && ! $this->invoiceBelongsTo($acc, 'CRM'.$inv)) {
+            return 'Invalid';
+        }
+
+        $terrData = DB::select("SELECT sc.territory_code as SALES_REP_TERRITORY,
+                CASE WHEN a.status_type = 1 THEN 'ACTIVE' ELSE 'INACTIVE' END as customer_status,
+                a.contact_name,
+                'No' as isRXE,
+                a.contact_email as customer_email,
+                sc.salesperson_name as SALES_REP_NAME,
+                sc.phone as SALES_REP_PHONE,
+                sc.slp_email as SALES_REP_EMAIL
+            FROM armaster a
+            JOIN cvo_sc_addr_vw sc WITH (NOLOCK) ON (a.territory_code = sc.territory_code)
+            WHERE a.customer_code = ?", [$acc]);
+
+        // Encodes as {"0": {...}, "allow_shipping_methods": "..."}, which the website expects.
+        $terrData['allow_shipping_methods'] = 'USPS, UPSGR';
+
+        return response()->json($terrData);
+    }
+
+    /**
      * GET /magento/account/{account}
      *
      * Returns the account's addresses keyed by ship-to code ("default" for the bill-to), followed by
@@ -59,7 +94,7 @@ class CVOWebsiteSupportController extends Controller
      */
     public function accountData(string $account)
     {
-        $account = (strlen($account) == 5 && ! preg_match('/^0/', $account)) ? '0'.$account : $account;
+        $account = $this->padAccount($account);
 
         $brandMap = $this->brandList();
         $tempAllowBrands = DB::table('cvo_temp_allow_brands')->where('account_no', $account)->value('allow_brands');
@@ -251,6 +286,21 @@ class CVOWebsiteSupportController extends Controller
         $row['updated_at'] = now()->format('Y-m-d H:i:s');
 
         return $row;
+    }
+
+    /**
+     * Account numbers are six digits; the website may drop the leading zero.
+     */
+    protected function padAccount(string $account): string
+    {
+        return (strlen($account) == 5 && ! preg_match('/^0/', $account)) ? '0'.$account : $account;
+    }
+
+    protected function invoiceBelongsTo(string $account, string $docNo): bool
+    {
+        $row = DB::selectOne('exec cvo_web_cust_inv_chk_sp ?, ?', [$account, $docNo]);
+
+        return $row !== null && (array_values((array) $row)[0] ?? null) == 'Yes';
     }
 
     protected function addShipVia(array &$validShipOptions, $shipVia): void
