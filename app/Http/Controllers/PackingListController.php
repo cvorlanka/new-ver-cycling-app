@@ -38,7 +38,7 @@ class PackingListController extends Controller
     {
         [$orderNumber, $orderExtension] = array_pad(explode('-', $order_no, 2), 2, '');
 
-        $query = 'SELECT d.order_no, d.order_ext, d.line_no, d.part_no, cx.cust_part, inv.description, SUM(pack_qty) as pack_qty
+        $query = 'SELECT d.order_no, d.order_ext, d.line_no, d.part_no, cx.cust_part, inv.description, CONVERT(int, SUM(pack_qty)) as pack_qty
             FROM tdc_CARTON_DETAIL_TX d
             LEFT JOIN orders o WITH (NOLOCK) ON (d.order_no = o.order_no AND d.order_ext = o.ext)
             LEFT JOIN cust_xref cx WITH (NOLOCK) ON (d.part_no = cx.part_no AND o.cust_code = cx.customer_key)
