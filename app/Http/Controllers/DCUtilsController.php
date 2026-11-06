@@ -30,7 +30,7 @@ class DCUtilsController extends Controller
             ->update([
                 'is_label_printed' => $request->input('is_printed'),
                 'num_labels_printed' => $request->input('num_labels'),
-                'label_date' => now()->format('Y-m-d H:i:s'),
+                'label_date' => @date("Y-m-d H:i:s")
             ]);
     }
 }
