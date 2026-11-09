@@ -58,7 +58,7 @@ class DCUtilsController extends Controller
         $numLabels = $request->input('num_labels');
         DB::table('cvo_case_barcode_log')
             ->where('order_no', $orderNo)
-            ->update(['is_label_printed' => $printFlag, 'is_label_printed' => $numLabels, 'label_date' => @date("Y-m-d H:i:s")]);
+            ->update(['is_label_printed' => 1, 'is_label_printed' => $numLabels, 'label_date' => @date("Y-m-d H:i:s")]);
         //DB::insert("INSERT INTO cvo_case_barcode_log (order_no, is_label_printed, num_labels_printed) VALUES (?, ?, ?)", [$orderNo, $printFlag, $numLabels]);
     }
 }
