@@ -116,6 +116,7 @@ return [
             'login_timeout' => env('DB_LOGIN_TIMEOUT', 10),
             'options' => defined('PDO::SQLSRV_ATTR_QUERY_TIMEOUT') ? [
                 PDO::SQLSRV_ATTR_QUERY_TIMEOUT => (int) env('DB_QUERY_TIMEOUT', 30),
+                PDO::ATTR_STRINGIFY_FETCHES => true,
             ] : [],
         ],
 
