@@ -42,7 +42,7 @@ class DCUtilsController extends Controller
     {
         //$zipcode = $request->input('zip');
         //$results = DB::select("SELECT TOP 1 order_no, scan_user, 1 as num_labels FROM cvo_cart_scan_orders");
-        $results = DB::select("SELECT o.order_no, o.scan_user, 1 as num_labels 
+        $results = DB::select("SELECT TOP 1 o.order_no, o.scan_user, 1 as num_labels 
         FROM cvo_cart_scan_orders o
         JOIN cvo_case_barcode_log l WITH (NOLOCK) 
         ON (o.order_no = l.order_no) 
